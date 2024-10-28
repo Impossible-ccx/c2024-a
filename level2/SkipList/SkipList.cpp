@@ -71,13 +71,13 @@ protected:
 			target->NextNode->PreNode = target->PreNode;
 			if (target->UpNode == NULL)
 			{
-				free(target);
+				delete(target);
 				break;
 			}
 			else
 			{
 				target = target->UpNode;
-				free(target->DownNode);
+				delete(target->DownNode);
 			}
 		}
 	}
