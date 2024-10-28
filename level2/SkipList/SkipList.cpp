@@ -40,7 +40,7 @@ protected:
 	bool CanUpgrate()
 	{
 		int a = RandomClass::GetRandInt() % 100;
-		if (a < 50)
+		if (a < 33)
 		{
 			return true;
 		}
