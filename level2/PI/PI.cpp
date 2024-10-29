@@ -359,7 +359,7 @@ public:
 	{
 		Hy_FixedNum* DivisionS = new Hy_FixedNum();
 		Hy_FixedNum* Division = new Hy_FixedNum();
-		Hy_FixedNum* ls = new Hy_FixedNum();
+		Hy_FixedNum* ls;
 		Division->integer = Num2->integer;
 		for (int i = 0; i < 5000; i++)
 		{
