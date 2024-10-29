@@ -76,14 +76,14 @@ public:
 		{
 			F1 = Source[i];
 			F2 = target[i];
-			if (F1 == 0xffffffff && carry == 1)
+			if (F1 == 0xff && carry == 1)
 			{
 				carry = 1;
 			}
 			else
 			{
 				F1 += carry;
-				if (F1 & F2 & 0xf0000000)
+				if (0xff - F1 < F2)
 				{
 					carry = 1;
 					target[i] = F1 + F2;
@@ -230,8 +230,8 @@ public:
 		unsigned char* N1 = (unsigned char*)malloc(sizeof(unsigned char) * 10000);
 		unsigned char* N2 = (unsigned char*)malloc(sizeof(unsigned char) * 10000);
 		unsigned char result[10000];
-		memset(N1, 0, sizeof(N1));
-		memset(N2, 0, sizeof(N1));
+		memset(N1, 0, 10000);
+		memset(N2, 0, 10000);
 		memset(result, 0, sizeof(result));
 		Hy_FixedNum* Result = new Hy_FixedNum();
 		for (int i = 0; i < 5000; i++)
@@ -239,7 +239,7 @@ public:
 			N1[i + 5000] = Num1->decimal[i];
 			N2[i + 5000] = Num2->decimal[i];
 		}
-		for (int i = 0; i < 5000; i++)
+		for (int i = 0; i < 40000; i++)
 		{
 			if (tMoveRight(N2, 10000))
 			{
@@ -419,7 +419,7 @@ public:
 		}
 		return result;
 	}
-	void Print()
+	void Print(int round = 30)
 	{
 		Hy_FixedNum* ls = new Hy_FixedNum();
 		Hy_FixedNum* ls10 = new Hy_FixedNum();
@@ -430,8 +430,7 @@ public:
 			ls->decimal[i] = this->decimal[i];
 		}
 		printf("%d.", this->integer);
-		for(int i = 0; i<30;i++)
-		//while (Gt0(ls))
+		for (int i = 0; i < round; i++)
 		{
 			lst = MultiIntDecimal(ls10, ls);
 			//printf("ls->");
@@ -477,24 +476,30 @@ int main()
 	Hy_FixedNum* R = new Hy_FixedNum(1);
 	Hy_FixedNum* ls;
 	Hy_FixedNum* lst;
-	for (int i = 0; i < 2; i++)
+	int targetLevel;
+	printf("目标迭代次数：");
+	scanf("%d", &targetLevel);
+	for (int i = 0; i < targetLevel; i++)
 	{
 		ls = PiDiv2;
 		PiDiv2 = Hy_FixedNum::Add(PiDiv2, R);
+
+		printf("迭代：%d\n", i);
+
 		delete(ls);
 		ls = Hy_FixedNum::Div(L1, L2);
 
-		printf("Multi->");
-		ls->Print();
-		printf("R->");
-		R->Print();
+		//printf("Multi->");
+		//ls->Print();
+		//printf("R->");
+		//R->Print();
 
 		lst = R;
 		R = Hy_FixedNum::Multi(R, ls);
 
-		printf("R next->");
-		R->Print();
-		printf("\n");
+		//printf("R next->");
+		//R->Print();
+		//printf("\n");
 
 		delete(ls);
 		delete(lst);
@@ -503,7 +508,8 @@ int main()
 	}
 	lst = new Hy_FixedNum(2);
 	ls = Hy_FixedNum::Multi(PiDiv2, lst);
-	ls->Print();
+	printf("Pi = ");
+	ls->Print(100);
 	delete(ls);
 	delete(lst);
 	delete(R);
