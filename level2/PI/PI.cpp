@@ -3,7 +3,7 @@ using namespace std;
 //实现一个定点高精度小数，只保存正数
 class Hy_FixedNum
 {
-protected:
+public:
 	//整数与小数部分，小数定40000位二进制应该够用了
 	unsigned int integer;
 	unsigned char decimal[5000];
@@ -47,7 +47,7 @@ protected:
 			*target = *target <<= 1;
 			target++;
 		}
-		return true;
+		return result;
 	}
 	static void hMoveLeft(Hy_FixedNum* target)
 	{
@@ -102,15 +102,19 @@ protected:
 		int Intn = num1->integer;
 		Hy_FixedNum* newNum2 = new Hy_FixedNum();
 		Hy_FixedNum* result = new Hy_FixedNum();
+		Hy_FixedNum* ls;
 		for (int i = 0; i < 5000; i++)
 		{
 			newNum2->decimal[i] = num2->decimal[i];
 		}
+		int p = 0;
 		for (int i = 0; i < 5000; i++)
 		{
 			if (Intn & 0x00000001)
 			{
-				result = Add(result, newNum2);
+				ls = result;
+				result = Add(ls, newNum2);
+				delete(ls);
 			}
 			Intn >>= 1;
 			hMoveLeft(newNum2);
@@ -153,6 +157,33 @@ protected:
 	}
 	//
 public:
+	Hy_FixedNum(double ini = 0)
+	{
+		this->integer = floor(ini);
+		memset(this->decimal, 0, sizeof(this->decimal));
+		ini -= this->integer;
+		int tarIn = 1;
+		unsigned char* pT = this->decimal;
+		if (ini == 0)
+		{
+			return;
+		}
+		for (int i = 0; i < 40000; i++)
+		{
+			ini *= 2;
+			if (ini > 1)
+			{
+				Attach(tarIn, pT);
+				ini -= 1;
+			}
+			tarIn++;
+			if (tarIn > 8)
+			{
+				tarIn = 1;
+				pT++;
+			}
+		}
+	}
 	static Hy_FixedNum* Add(Hy_FixedNum* Num1, Hy_FixedNum* Num2)
 	{
 		Hy_FixedNum* result = new Hy_FixedNum();
@@ -172,7 +203,7 @@ public:
 			else
 			{
 				F1 += carry;
-				if (F1 & F2 & 0x80)
+				if (0xff - F1 < F2)
 				{
 					carry = 1;
 					result->decimal[i] = F1 + F2;
@@ -199,6 +230,9 @@ public:
 		unsigned char* N1 = (unsigned char*)malloc(sizeof(unsigned char) * 10000);
 		unsigned char* N2 = (unsigned char*)malloc(sizeof(unsigned char) * 10000);
 		unsigned char result[10000];
+		memset(N1, 0, sizeof(N1));
+		memset(N2, 0, sizeof(N1));
+		memset(result, 0, sizeof(result));
 		Hy_FixedNum* Result = new Hy_FixedNum();
 		for (int i = 0; i < 5000; i++)
 		{
@@ -291,14 +325,19 @@ public:
 				if (i == 0)
 				{
 					result->integer -= 1;
-					result->decimal[i] = 0xff - Num2->decimal[i] + result->decimal[i];
+					result->decimal[i] = 0xff - Num2->decimal[i] + result->decimal[i] + 1;
 				}
 				else
 				{
 					pRent = &result->decimal[i - 1];
-					while (*pRent == 0)
+					while (true)
 					{
-						pRent -= 1;
+						if (!*pRent == 0)
+						{
+							*pRent -= 1;
+							break;
+						}
+						*pRent = 0xff;
 						if (pRent == result->decimal)
 						{
 							result->integer -= 1;
@@ -309,8 +348,7 @@ public:
 							pRent--;
 						}
 					}
-					*pRent -= 1;
-					result->decimal[i] = 0xff - Num2->decimal[i] + result->decimal[i];
+					result->decimal[i] = 0xff - Num2->decimal[i] + result->decimal[i] + 1;
 				}
 			}
 		}
@@ -340,24 +378,35 @@ public:
 			multiple++;
 		}
 		int TT = 1;
-		unsigned char* DivTar = result->decimal;
+		int DivtarIndex = 0;
 		while (Gt0(Division))
 		{
 			hMoveRight(Division);
 			if (Gt(DivisionS, Division))
 			{
+				//printf("DS->");
+				//DivisionS->Print();
+				//printf("DV->");
+				//Division->Print();
 				ls = DivisionS;
 				DivisionS = Sub(ls, Division);
+				//printf("Left->");
+				//DivisionS->Print();
 				delete(ls);
-				Attach(TT, DivTar);
+				Attach(TT, result->decimal + DivtarIndex);
+				//printf("this2->");
+				//result->Print2();
+				//printf("this->");
+				//result->Print();
+				//printf("\n");
 			}
 			TT++;
-			DivTar++;
 			if (TT > 8)
 			{
 				TT = 1;
+				DivtarIndex++;
 			}
-			if (DivTar == result->decimal + 4999)
+			if (DivtarIndex == 4999)
 			{
 				break;
 			}
@@ -370,28 +419,68 @@ public:
 		}
 		return result;
 	}
-	static int Mod(int mods, Hy_FixedNum* target);
 	void Print()
 	{
 		Hy_FixedNum* ls = new Hy_FixedNum();
-		Hy_FixedNum* lst = new Hy_FixedNum();
-		lst->integer = 10;
+		Hy_FixedNum* ls10 = new Hy_FixedNum();
+		Hy_FixedNum* lst;
+		ls10->integer = 10;
 		for (int i = 0; i < 5000; i++)
 		{
 			ls->decimal[i] = this->decimal[i];
 		}
 		printf("%d.", this->integer);
-		for (int i = 0; i < 5000; i++)
+		for(int i = 0; i<30;i++)
+		//while (Gt0(ls))
 		{
-			printf("%d", Mod(10, ls));
-			ls = Multi(lst, ls);
+			lst = MultiIntDecimal(ls10, ls);
+			//printf("ls->");
+			//ls->Print2();
+			//printf("Multied->");
+			//lst->Print2();
+			printf("%d", lst->integer);
+			delete(ls);
+			ls = lst;
 			ls->integer = 0;
 		}
-		delete(lst);
+		printf("\n");
+		delete(ls10);
+		delete(ls);
+	}
+	void Print2()
+	{
+		Hy_FixedNum* ls = new Hy_FixedNum();
+		for (int i = 0; i < 15; i++)
+		{
+			ls->decimal[i] = this->decimal[i];
+		}
+		for (int i = 0; i < 50; i++)
+		{
+			if (tMoveLeft(ls->decimal, 15))
+			{
+				printf("1");
+			}
+			else
+			{
+				printf("0");
+			}
+		}
+		printf("\n");
 		delete(ls);
 	}
 };
 int main()
 {
+	Hy_FixedNum* a = new Hy_FixedNum(213);
+	Hy_FixedNum* b = new Hy_FixedNum(11);
+	for (int i = 0; i < 3; i++)
+	{
+		Hy_FixedNum* c = Hy_FixedNum::Div(a, b);
+		delete(a);
+		a = c;
+	}
+	a->Print();
+	delete(b);
+	delete(a);
 	return 0;
 }
