@@ -379,7 +379,7 @@ public:
 		}
 		int TT = 1;
 		int DivtarIndex = 0;
-		while (Gt0(Division))
+		for (int i = 0; i < 40000; i++)
 		{
 			hMoveRight(Division);
 			if (Gt(DivisionS, Division))
@@ -471,16 +471,44 @@ public:
 };
 int main()
 {
-	Hy_FixedNum* a = new Hy_FixedNum(213);
-	Hy_FixedNum* b = new Hy_FixedNum(11);
-	for (int i = 0; i < 3; i++)
+	Hy_FixedNum* PiDiv2 = new Hy_FixedNum();
+	Hy_FixedNum* L1 = new Hy_FixedNum(1);
+	Hy_FixedNum* L2 = new Hy_FixedNum(3);
+	Hy_FixedNum* R = new Hy_FixedNum(1);
+	Hy_FixedNum* ls;
+	Hy_FixedNum* lst;
+	for (int i = 0; i < 2; i++)
 	{
-		Hy_FixedNum* c = Hy_FixedNum::Div(a, b);
-		delete(a);
-		a = c;
+		ls = PiDiv2;
+		PiDiv2 = Hy_FixedNum::Add(PiDiv2, R);
+		delete(ls);
+		ls = Hy_FixedNum::Div(L1, L2);
+
+		printf("Multi->");
+		ls->Print();
+		printf("R->");
+		R->Print();
+
+		lst = R;
+		R = Hy_FixedNum::Multi(R, ls);
+
+		printf("R next->");
+		R->Print();
+		printf("\n");
+
+		delete(ls);
+		delete(lst);
+		L1->integer++;
+		L2->integer = L1->integer * 2 + 1;
 	}
-	a->Print();
-	delete(b);
-	delete(a);
+	lst = new Hy_FixedNum(2);
+	ls = Hy_FixedNum::Multi(PiDiv2, lst);
+	ls->Print();
+	delete(ls);
+	delete(lst);
+	delete(R);
+	delete(L1);
+	delete(L2);
+	delete(PiDiv2);
 	return 0;
 }
